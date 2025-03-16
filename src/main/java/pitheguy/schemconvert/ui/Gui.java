@@ -7,6 +7,7 @@ import pitheguy.schemconvert.nbt.NbtException;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.stream.Collectors;
@@ -38,6 +39,9 @@ public class Gui extends JFrame {
     private JPanel createInputPathPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        JLabel label = new JLabel("Input File:");
+        label.setPreferredSize(new Dimension(70, 20));
+        panel.add(label);
         inputPathField = new JTextField(20);
         inputPathField.setEditable(false);
         panel.add(inputPathField);
@@ -55,6 +59,9 @@ public class Gui extends JFrame {
     private JPanel createOutputPathPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        JLabel label = new JLabel("Output File:");
+        label.setPreferredSize(new Dimension(70, 20));
+        panel.add(label);
         outputPathField = new JTextField(20);
         outputPathField.setEditable(false);
         panel.add(outputPathField);
@@ -74,7 +81,9 @@ public class Gui extends JFrame {
     private JPanel createFormatPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        panel.add(new JLabel("Convert To: "));
+        JLabel label = new JLabel("Convert To: ");
+        label.setPreferredSize(new Dimension(70, 20));
+        panel.add(label);
         outputFormatDropdown = new JComboBox<>(Converter.SCHEMATIC_EXTENSIONS.toArray(new String[0]));
         panel.add(outputFormatDropdown);
         return panel;
@@ -84,6 +93,7 @@ public class Gui extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
         convertButton = new JButton("Convert");
+        convertButton.setEnabled(false);
         convertButton.addActionListener(e -> convert());
         panel.add(convertButton);
         return panel;
