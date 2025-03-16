@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'pitheguy.schemconvert' // Replace with your actual group ID
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:latest.release'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+    }
+}
+
+application {
+    mainClass = 'pitheguy.schemconvert.Main'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'pitheguy.schemconvert.Main'
+        )
+    }
+}
+
+shadowJar {
+    archiveClassifier.set('all') // Ensures all dependencies are included
+}
