@@ -109,6 +109,11 @@ public class LitematicSchematicFormat implements SchematicFormat {
         return container.toLongArray();
     }
 
+    @Override
+    public String getExtension() {
+        return ".litematic";
+    }
+
     private static class BlockStateContainer {
         private final BitSet bits;
         private final int bitsPerValue;

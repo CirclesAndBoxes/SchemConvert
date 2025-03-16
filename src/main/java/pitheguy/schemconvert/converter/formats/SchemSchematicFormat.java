@@ -109,4 +109,9 @@ public class SchemSchematicFormat implements SchematicFormat {
         tag.put("DataVersion", new IntTag(schematic.getDataVersion()));
         NbtUtil.write(tag, file, "Schematic");
     }
+
+    @Override
+    public String getExtension() {
+        return ".schem";
+    }
 }

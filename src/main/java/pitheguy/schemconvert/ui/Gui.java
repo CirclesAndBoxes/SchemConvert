@@ -2,8 +2,8 @@ package pitheguy.schemconvert.ui;
 
 import pitheguy.schemconvert.converter.*;
 import pitheguy.schemconvert.converter.formats.SchematicFormat;
-import pitheguy.schemconvert.converter.formats.SchematicFormats;
 import pitheguy.schemconvert.nbt.NbtException;
+import pitheguy.schemconvert.util.Util;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -17,7 +17,7 @@ public class Gui extends JFrame {
 
     private JTextField inputPathField;
     private JTextField outputPathField;
-    private JComboBox<String> outputFormatDropdown;
+    private FormatSelectionDropdown formatDropdown;
     private JButton convertButton;
 
     public Gui() {
@@ -28,7 +28,14 @@ public class Gui extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.add(createInputPathPanel());
         panel.add(createOutputPathPanel());
-        panel.add(createFormatPanel());
+        formatDropdown = new FormatSelectionDropdown();
+        formatDropdown.addActionListener(e -> {
+            if (!outputPathField.getText().isEmpty()) {
+                String outputPath = Util.stripExtension(outputPathField.getText()) + formatDropdown.getSelectedFormat().getExtension();
+                outputPathField.setText(outputPath);
+            }
+        });
+        panel.add(formatDropdown);
         panel.add(createButtonPanel());
         add(panel);
         pack();
@@ -48,8 +55,14 @@ public class Gui extends JFrame {
         JButton browseButton = new JButton("Browse...");
         browseButton.addActionListener(e -> {
             JFileChooser chooser = createFileChooser();
-            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
-                inputPathField.setText(chooser.getSelectedFile().getAbsolutePath());
+            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = chooser.getSelectedFile();
+                inputPathField.setText(selectedFile.getAbsolutePath());
+                if (outputPathField.getText().isEmpty()) {
+                    String outputPath = Util.stripExtension(selectedFile.getAbsolutePath()) + formatDropdown.getSelectedFormat().getExtension();
+                    outputPathField.setText(outputPath);
+                }
+            }
             updateButtonState();
         });
         panel.add(browseButton);
@@ -70,22 +83,14 @@ public class Gui extends JFrame {
             JFileChooser chooser = createFileChooser();
             if (!inputPathField.getText().isEmpty())
                 chooser.setCurrentDirectory(new File(inputPathField.getText()).getParentFile());
-            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 outputPathField.setText(chooser.getSelectedFile().getAbsolutePath());
+                String extension = Util.getExtension(outputPathField.getText());
+                if (Converter.SCHEMATIC_EXTENSIONS.contains(extension)) formatDropdown.setSelectedFormat(extension);
+            }
             updateButtonState();
         });
         panel.add(browseButton);
-        return panel;
-    }
-
-    private JPanel createFormatPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        JLabel label = new JLabel("Convert To: ");
-        label.setPreferredSize(new Dimension(70, 20));
-        panel.add(label);
-        outputFormatDropdown = new JComboBox<>(Converter.SCHEMATIC_EXTENSIONS.toArray(new String[0]));
-        panel.add(outputFormatDropdown);
         return panel;
     }
 
@@ -107,12 +112,7 @@ public class Gui extends JFrame {
         try {
             File inputFile = new File(inputPathField.getText());
             File outputFile = new File(outputPathField.getText());
-            SchematicFormat format = switch (outputFormatDropdown.getSelectedItem().toString()) {
-                case ".nbt" -> SchematicFormats.NBT;
-                case ".schem" -> SchematicFormats.SCHEM;
-                case ".litematic" -> SchematicFormats.LITEMATIC;
-                default -> throw new IllegalStateException("Unexpected value: " + outputFormatDropdown.getSelectedItem());
-            };
+            SchematicFormat format = formatDropdown.getSelectedFormat();
             new Converter().convert(inputFile, outputFile, format);
             JOptionPane.showMessageDialog(this, "Schematic successfully converted!", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
@@ -149,4 +149,6 @@ public class Gui extends JFrame {
         });
         return chooser;
     }
+
+
 }

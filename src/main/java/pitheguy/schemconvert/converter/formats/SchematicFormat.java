@@ -9,4 +9,6 @@ public interface SchematicFormat {
     Schematic read(File file) throws IOException;
 
     void write(File file, Schematic schematic) throws IOException;
+
+    String getExtension();
 }
