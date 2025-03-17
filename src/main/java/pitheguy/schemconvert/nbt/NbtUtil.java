@@ -34,11 +34,11 @@ public class NbtUtil {
         return (CompoundTag) readByType(type, in);
     }
 
-    public static void write(Tag tag, File file, String rootTagName) throws IOException {
+    public static void write(Tag tag, File file) throws IOException {
         try (GZIPOutputStream gzip = new GZIPOutputStream(new FileOutputStream(file));
              DataOutputStream out = new DataOutputStream(gzip)) {
             out.write(tag.getType());
-            out.writeUTF(rootTagName);
+            out.writeUTF("");
             tag.writeContents(out);
             out.flush();
             gzip.finish();

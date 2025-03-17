@@ -1,5 +1,6 @@
 package pitheguy.schemconvert.converter.formats;
 
+import pitheguy.schemconvert.converter.Entity;
 import pitheguy.schemconvert.converter.Schematic;
 import pitheguy.schemconvert.nbt.NbtUtil;
 import pitheguy.schemconvert.nbt.tags.*;
@@ -42,6 +43,16 @@ public class SchemSchematicFormat implements SchematicFormat {
             int[] pos = blockEntity.getIntArray("Pos");
             builder.addBlockEntity(pos[0], pos[1], pos[2], blockEntity);
         }
+        ListTag entitiesTag = schematicTag.getList("Entities");
+        for (Tag value : entitiesTag) {
+            CompoundTag entity = (CompoundTag) value;
+            ListTag posTag = entity.getList("Pos");
+            double[] pos = new double[3];
+            for (int i = 0; i < 3; i++) pos[i] = ((DoubleTag) posTag.get(i)).value();
+            String id = entity.getString("Id");
+            CompoundTag nbt = entity.getCompound("Data");
+            builder.addEntity(id, pos[0], pos[1], pos[2], nbt);
+        }
         return builder.build();
     }
 
@@ -74,13 +85,13 @@ public class SchemSchematicFormat implements SchematicFormat {
 
     @Override
     public void write(File file, Schematic schematic) throws IOException {
-        CompoundTag tag = new CompoundTag();
+        CompoundTag schematicTag = new CompoundTag();
         int[] size = schematic.getSize();
-        tag.put("Version", new IntTag(2));
-        tag.put("Width", new ShortTag((short) size[0]));
-        tag.put("Height", new ShortTag((short) size[1]));
-        tag.put("Length", new ShortTag((short) size[2]));
-        tag.put("PaletteMax", new IntTag(schematic.getPalette().size()));
+        schematicTag.put("Version", new IntTag(3));
+        schematicTag.put("Width", new ShortTag((short) size[0]));
+        schematicTag.put("Height", new ShortTag((short) size[1]));
+        schematicTag.put("Length", new ShortTag((short) size[2]));
+        CompoundTag blocksTag = new CompoundTag();
         List<String> palette = new ArrayList<>(schematic.getPalette());
         byte[] blockData = new byte[size[0] * size[1] * size[2]];
         int index = 0;
@@ -96,18 +107,34 @@ public class SchemSchematicFormat implements SchematicFormat {
                 }
             }
         }
-        tag.put("BlockData", new ByteArrayTag(blockData));
+        blocksTag.put("Data", new ByteArrayTag(blockData));
         CompoundTag paletteTag = new CompoundTag();
         for (int i = 0; i < palette.size(); i++) paletteTag.put(palette.get(i), new IntTag(i));
-        tag.put("Palette", paletteTag);
+        blocksTag.put("Palette", paletteTag);
         ListTag blockEntitiesTag = new ListTag(Tag.TAG_COMPOUND);
         schematic.getBlockEntities().forEach((pos, entity) -> {
             if (!entity.contains("Pos", Tag.TAG_INT_ARRAY))
                 entity.put("Pos", new IntArrayTag(new int[]{pos.x(), pos.y(), pos.z()}));
         });
-        tag.put("BlockEntities", blockEntitiesTag);
-        tag.put("DataVersion", new IntTag(schematic.getDataVersion()));
-        NbtUtil.write(tag, file, "Schematic");
+        blocksTag.put("BlockEntities", blockEntitiesTag);
+        ListTag entitiesTag = new ListTag(Tag.TAG_COMPOUND);
+        for (Entity entity : schematic.getEntities()) {
+            CompoundTag entityTag = new CompoundTag();
+            ListTag posTag = new ListTag(Tag.TAG_DOUBLE);
+            posTag.add(new DoubleTag(entity.x()));
+            posTag.add(new DoubleTag(entity.y()));
+            posTag.add(new DoubleTag(entity.z()));
+            entityTag.put("Pos", posTag);
+            entityTag.put("Id", new StringTag(entity.id()));
+            entityTag.put("Data", entity.nbt());
+            entitiesTag.add(entityTag);
+        }
+        schematicTag.put("Blocks", blocksTag);
+        schematicTag.put("Entities", entitiesTag);
+        schematicTag.put("DataVersion", new IntTag(schematic.getDataVersion()));
+        CompoundTag tag = new CompoundTag();
+        tag.put("Schematic", schematicTag);
+        NbtUtil.write(tag, file);
     }
 
     @Override

@@ -1,7 +1,6 @@
 package pitheguy.schemconvert.converter.formats;
 
-import pitheguy.schemconvert.converter.ConversionException;
-import pitheguy.schemconvert.converter.Schematic;
+import pitheguy.schemconvert.converter.*;
 import pitheguy.schemconvert.nbt.NbtUtil;
 import pitheguy.schemconvert.nbt.tags.*;
 import pitheguy.schemconvert.util.Util;
@@ -22,7 +21,11 @@ public class LitematicSchematicFormat implements SchematicFormat {
         CompoundTag region = regions.getCompound(regions.keySet().iterator().next());
         ListTag paletteTag = region.getList("BlockStatePalette");
         CompoundTag sizeTag = region.getCompound("Size");
-        int[] size = new int[] {sizeTag.getInt("x"), sizeTag.getInt("y"), sizeTag.getInt("z")};
+        int[] size = new int[] {Math.abs(sizeTag.getInt("x")), Math.abs(sizeTag.getInt("y")), Math.abs(sizeTag.getInt("z"))};
+        CompoundTag regionPosTag = region.getCompound("Position");
+        int regionX = regionPosTag.getInt("x");
+        int regionY = regionPosTag.getInt("y");
+        int regionZ = regionPosTag.getInt("z");
         String[] palette = new String[paletteTag.size()];
         for (int i = 0; i < paletteTag.size(); i++) palette[i] = NbtUtil.convertToBlockString((CompoundTag) paletteTag.get(i));
         Schematic.Builder builder = new Schematic.Builder(file, tag.getInt("MinecraftDataVersion"), size[0], size[1], size[2]);
@@ -39,6 +42,14 @@ public class LitematicSchematicFormat implements SchematicFormat {
             entityTag.remove("x");
             entityTag.remove("y");
             entityTag.remove("z");
+        }
+        ListTag entitiesTag = region.getList("Entities");
+        for (Tag value : entitiesTag) {
+            CompoundTag entityTag = (CompoundTag) value;
+            ListTag posTag = entityTag.getList("Pos");
+            double[] pos = new double[3];
+            for (int i = 0; i < 3; i++) pos[i] = ((DoubleTag) posTag.get(i)).value();
+            builder.addEntity(entityTag.getString("id"), pos[0] + regionX, pos[1] + regionY, pos[2] + regionZ, entityTag);
         }
         return builder.build();
     }
@@ -84,6 +95,17 @@ public class LitematicSchematicFormat implements SchematicFormat {
             tileEntitiesTag.add(entity);
         });
         region.put("TileEntities", tileEntitiesTag);
+        ListTag entitiesTag = new ListTag(Tag.TAG_COMPOUND);
+        for (Entity entity : schematic.getEntities()) {
+            CompoundTag entityTag = entity.nbt();
+            ListTag entityPosTag = new ListTag(Tag.TAG_DOUBLE);
+            entityPosTag.add(new DoubleTag(entity.x()));
+            entityPosTag.add(new DoubleTag(entity.y()));
+            entityPosTag.add(new DoubleTag(entity.z()));
+            entityTag.put("Pos", entityPosTag);
+            entitiesTag.add(entityTag);
+        }
+        region.put("Entities", entitiesTag);
         regions.put(Util.stripExtension(schematic.getSourceFile().getName()), region);
         tag.put("Regions", regions);
         tag.put("MinecraftDataVersion", new IntTag(schematic.getDataVersion()));
@@ -96,7 +118,7 @@ public class LitematicSchematicFormat implements SchematicFormat {
         metadataTag.put("TotalVolume", new IntTag(size[0] * size[1] * size[2]));
         metadataTag.put("RegionCount", new IntTag(1));
         tag.put("Metadata", metadataTag);
-        NbtUtil.write(tag, file, "");
+        NbtUtil.write(tag, file);
     }
 
     private static long getCreationTime(File file) throws IOException {

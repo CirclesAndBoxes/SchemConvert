@@ -1,11 +1,9 @@
 package pitheguy.schemconvert.converter.formats;
 
-import pitheguy.schemconvert.Main;
 import pitheguy.schemconvert.converter.*;
 import pitheguy.schemconvert.nbt.NbtUtil;
 import pitheguy.schemconvert.nbt.tags.*;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -32,6 +30,15 @@ public class NbtSchematicFormat implements SchematicFormat {
             builder.setBlockAt(pos[0], pos[1], pos[2], palette[state]);
             if (entry.contains("nbt", Tag.TAG_COMPOUND))
                 builder.addBlockEntity(pos[0], pos[1], pos[2], entry.getCompound("nbt"));
+        }
+        ListTag entitiesTag = tag.getList("entities");
+        for (Tag value : entitiesTag) {
+            CompoundTag entityTag = (CompoundTag) value;
+            ListTag posTag = entityTag.getList("pos");
+            double[] pos = new double[3];
+            for (int i = 0; i < 3; i++) pos[i] = ((DoubleTag) posTag.get(i)).value();
+            CompoundTag nbt = entityTag.getCompound("nbt");
+            builder.addEntity(nbt.getString("id"), pos[0], pos[1], pos[2], nbt);
         }
         return builder.build();
     }
@@ -62,11 +69,30 @@ public class NbtSchematicFormat implements SchematicFormat {
                 }
             }
         }
+        ListTag entitiesTag = new ListTag(Tag.TAG_COMPOUND);
+        for (Entity entity : schematic.getEntities()) {
+            CompoundTag entityTag = new CompoundTag();
+            ListTag posTag = new ListTag(Tag.TAG_DOUBLE);
+            posTag.add(new DoubleTag(entity.x()));
+            posTag.add(new DoubleTag(entity.y()));
+            posTag.add(new DoubleTag(entity.z()));
+            entityTag.put("pos", posTag);
+            ListTag blockPosTag = new ListTag(Tag.TAG_INT);
+            blockPosTag.add(new IntTag((int) entity.x()));
+            blockPosTag.add(new IntTag((int) entity.y()));
+            blockPosTag.add(new IntTag((int) entity.z()));
+            entityTag.put("blockPos", blockPosTag);
+            CompoundTag nbt = entity.nbt();
+            nbt.put("id", new StringTag(entity.id()));
+            entityTag.put("nbt", nbt);
+            entitiesTag.add(entityTag);
+        }
+        tag.put("entities", entitiesTag);
         tag.put("size", sizeTag);
         tag.put("blocks", blocksTag);
         tag.put("palette", paletteTag);
         tag.put("DataVersion", new IntTag(schematic.getDataVersion()));
-        NbtUtil.write(tag, file, "");
+        NbtUtil.write(tag, file);
     }
 
     @Override

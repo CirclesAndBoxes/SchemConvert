@@ -12,13 +12,15 @@ public class Schematic {
     private final String[][][] blocks;
     private final List<String> palette;
     private final Map<Pos, CompoundTag> blockEntities;
+    private final List<Entity> entities;
     private final int dataVersion;
     private final File sourceFile;
 
-    private Schematic(String[][][] blocks, List<String> palette, Map<Pos, CompoundTag> blockEntities, int dataVersion, File sourceFile) {
+    private Schematic(String[][][] blocks, List<String> palette, Map<Pos, CompoundTag> blockEntities, List<Entity> entities, int dataVersion, File sourceFile) {
         this.blocks = blocks;
         this.palette = palette;
         this.blockEntities = blockEntities;
+        this.entities = entities;
         this.dataVersion = dataVersion;
         this.sourceFile = sourceFile;
     }
@@ -53,6 +55,10 @@ public class Schematic {
         return blockEntities.get(new Pos(x, y, z));
     }
 
+    public List<Entity> getEntities() {
+        return entities;
+    }
+
     public void write(File file, SchematicFormat format) throws IOException {
         format.write(file, this);
     }
@@ -78,6 +84,7 @@ public class Schematic {
         private final String[][][] blocks;
         private final SequencedSet<String> palette;
         private final Map<Pos, CompoundTag> blockEntities;
+        private final List<Entity> entities;
         private final File sourceFile;
         private final int dataVersion;
 
@@ -85,6 +92,7 @@ public class Schematic {
             this.blocks = new String[xSize][ySize][zSize];
             this.palette = new LinkedHashSet<>();
             this.blockEntities = new HashMap<>();
+            this.entities = new ArrayList<>();
             this.sourceFile = sourceFile;
             this.dataVersion = dataVersion;
         }
@@ -98,8 +106,12 @@ public class Schematic {
             this.blockEntities.put(new Pos(x, y, z), entity);
         }
 
+        public void addEntity(String id, double x, double y, double z, CompoundTag nbt) {
+            entities.add(new Entity(id, x, y, z, nbt));
+        }
+
         public Schematic build() {
-            return new Schematic(blocks, palette.stream().toList(), blockEntities, dataVersion, sourceFile);
+            return new Schematic(blocks, palette.stream().toList(), blockEntities, entities, dataVersion, sourceFile);
         }
     }
 }
