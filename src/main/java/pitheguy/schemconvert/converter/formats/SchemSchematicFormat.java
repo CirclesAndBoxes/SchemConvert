@@ -1,7 +1,6 @@
 package pitheguy.schemconvert.converter.formats;
 
-import pitheguy.schemconvert.converter.Entity;
-import pitheguy.schemconvert.converter.Schematic;
+import pitheguy.schemconvert.converter.*;
 import pitheguy.schemconvert.nbt.NbtUtil;
 import pitheguy.schemconvert.nbt.tags.*;
 
@@ -15,7 +14,12 @@ public class SchemSchematicFormat implements SchematicFormat {
     public Schematic read(File file) throws IOException {
         CompoundTag tag = NbtUtil.read(file);
         if (tag.contains("Schematic", Tag.TAG_COMPOUND)) return readV3(file, tag.getCompound("Schematic"));
-        else return readV2(file, tag);
+        else {
+            int version = tag.getInt("Version");
+            if (version == 2) return readV2(file, tag);
+            else if (version == 1) throw new ConversionException("Sponge version 1 is not currently supported.");
+            else throw new ConversionException("Unknown sponge version");
+        }
     }
 
     private Schematic readV3(File file, CompoundTag schematicTag) {
