@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'pitheguy.schemconvert' // Replace with your actual group ID
-version = '1.0'
+version = '1.1'
 
 repositories {
     mavenCentral()
