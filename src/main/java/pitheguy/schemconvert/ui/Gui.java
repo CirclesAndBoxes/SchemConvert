@@ -117,7 +117,7 @@ public class Gui extends JFrame {
             JOptionPane.showMessageDialog(this, "Schematic successfully converted!", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "An error occurred while reading the input file.", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (NbtException e) {
+        } catch (NbtException | SchematicParseException e) {
             JOptionPane.showMessageDialog(this, "An error occurred while parsing the schematic. If you're sure this is a valid schematic, please report this!", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         } catch (ConversionException e) {

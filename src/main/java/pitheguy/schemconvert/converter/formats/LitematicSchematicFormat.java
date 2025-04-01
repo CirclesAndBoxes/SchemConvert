@@ -28,7 +28,7 @@ public class LitematicSchematicFormat implements SchematicFormat {
         int regionZ = regionPosTag.getInt("z");
         String[] palette = new String[paletteTag.size()];
         for (int i = 0; i < paletteTag.size(); i++) palette[i] = NbtUtil.convertToBlockString((CompoundTag) paletteTag.get(i));
-        Schematic.Builder builder = new Schematic.Builder(file, tag.getInt("MinecraftDataVersion"), size[0], size[1], size[2]);
+        Schematic.Builder builder = new Schematic.Builder(file, tag.getInt("MinecraftDataVersion"), size);
         int[] blockStates = unpackBlockStates(region.getLongArray("BlockStates"), size, palette);
         int index = 0;
         for (int y = 0; y < size[1]; y++)

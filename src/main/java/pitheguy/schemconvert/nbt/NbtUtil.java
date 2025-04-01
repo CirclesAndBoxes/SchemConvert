@@ -34,6 +34,13 @@ public class NbtUtil {
         return (CompoundTag) readByType(type, in);
     }
 
+    public static CompoundTag read(DataInputStream in) throws IOException {
+        byte type = in.readByte();
+        if (type != Tag.TAG_COMPOUND) throw new NbtException("Not in NBT format");
+        in.readUTF();
+        return (CompoundTag) readByType(type, in);
+    }
+
     public static void write(Tag tag, File file) throws IOException {
         try (GZIPOutputStream gzip = new GZIPOutputStream(new FileOutputStream(file));
              DataOutputStream out = new DataOutputStream(gzip)) {
@@ -43,6 +50,12 @@ public class NbtUtil {
             out.flush();
             gzip.finish();
         }
+    }
+
+    public static void write(Tag tag, DataOutputStream out) throws IOException {
+        out.write(tag.getType());
+        out.writeUTF("");
+        tag.writeContents(out);
     }
 
     public static CompoundTag convertFromBlockString(String block) {

@@ -68,6 +68,7 @@ public class Schematic {
             case ".nbt" -> SchematicFormats.NBT.read(file);
             case ".schem" -> SchematicFormats.SCHEM.read(file);
             case ".litematic" -> SchematicFormats.LITEMATIC.read(file);
+            case ".bp" -> SchematicFormats.AXIOM.read(file);
             default -> throw new IllegalArgumentException("Unsupported format: " + Util.getExtension(file.getName()));
         };
     }
@@ -80,8 +81,21 @@ public class Schematic {
         return sourceFile;
     }
 
+    public int countNonEmptyBlocks() {
+        int count = 0;
+        for (String[][] layer : blocks)
+            for (String[] column : layer)
+                for (String block : column)
+                    if (!isEmpty(block)) count++;
+        return count;
+    }
+
+    private static boolean isEmpty(String block) {
+        return block == null || block.equals("minecraft:air") || block.equals("minecraft:structure_void");
+    }
+
     public static class Builder {
-        private final String[][][] blocks;
+        private String[][][] blocks;
         private final SequencedSet<String> palette;
         private final Map<Pos, CompoundTag> blockEntities;
         private final List<Entity> entities;
@@ -97,6 +111,10 @@ public class Schematic {
             this.dataVersion = dataVersion;
         }
 
+        public Builder(File sourceFile, int dataVersion, int[] size) {
+            this(sourceFile, dataVersion, size[0], size[1], size[2]);
+        }
+
         public void setBlockAt(int x, int y, int z, String block) {
             this.blocks[x][y][z] = block;
             palette.add(block);
@@ -108,6 +126,23 @@ public class Schematic {
 
         public void addEntity(String id, double x, double y, double z, CompoundTag nbt) {
             entities.add(new Entity(id, x, y, z, nbt));
+        }
+
+        public Builder trim() {
+            int minY = 0;
+            loop:
+            for (int y = 0; y < blocks[0].length; y++) {
+                for (int x = 0; x < blocks.length; x++)
+                    for (int z = 0; z < blocks[0][0].length; z++)
+                        if (!isEmpty(blocks[x][y][z])) break loop;
+                minY++;
+            }
+            String[][][] newBlocks = new String[blocks.length][blocks[0].length - minY][blocks[0][0].length];
+            for (int y = minY; y < blocks[0].length; y++)
+                for (int x = 0; x < blocks.length; x++)
+                    System.arraycopy(blocks[x][y], 0, newBlocks[x][y - minY], 0, blocks[0][0].length);
+            blocks = newBlocks;
+            return this;
         }
 
         public Schematic build() {

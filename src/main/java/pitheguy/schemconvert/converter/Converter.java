@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class Converter {
-    public static final List<String> SCHEMATIC_EXTENSIONS = List.of(".nbt", ".schem", ".litematic");
+    public static final List<String> SCHEMATIC_EXTENSIONS = List.of(".nbt", ".schem", ".litematic", ".bp");
 
     public void convert(File input, File output, SchematicFormat outputFormat) throws IOException, ConversionException {
         Schematic schematic = Schematic.read(input);

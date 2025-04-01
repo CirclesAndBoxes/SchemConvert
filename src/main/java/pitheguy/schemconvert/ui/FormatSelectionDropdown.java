@@ -25,6 +25,7 @@ public class FormatSelectionDropdown extends JPanel {
             case ".nbt" -> SchematicFormats.NBT;
             case ".schem" -> SchematicFormats.SCHEM;
             case ".litematic" -> SchematicFormats.LITEMATIC;
+            case ".bp" -> SchematicFormats.AXIOM;
             default -> throw new IllegalStateException("Unexpected value: " + comboBox.getSelectedItem());
         };
     }

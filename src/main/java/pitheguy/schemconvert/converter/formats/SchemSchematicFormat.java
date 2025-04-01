@@ -47,15 +47,17 @@ public class SchemSchematicFormat implements SchematicFormat {
             int[] pos = blockEntity.getIntArray("Pos");
             builder.addBlockEntity(pos[0], pos[1], pos[2], blockEntity);
         }
-        ListTag entitiesTag = schematicTag.getList("Entities");
-        for (Tag value : entitiesTag) {
-            CompoundTag entity = (CompoundTag) value;
-            ListTag posTag = entity.getList("Pos");
-            double[] pos = new double[3];
-            for (int i = 0; i < 3; i++) pos[i] = ((DoubleTag) posTag.get(i)).value();
-            String id = entity.getString("Id");
-            CompoundTag nbt = entity.getCompound("Data");
-            builder.addEntity(id, pos[0], pos[1], pos[2], nbt);
+        if (schematicTag.contains("Entities", Tag.TAG_LIST)) {
+            ListTag entitiesTag = schematicTag.getList("Entities");
+            for (Tag value : entitiesTag) {
+                CompoundTag entity = (CompoundTag) value;
+                ListTag posTag = entity.getList("Pos");
+                double[] pos = new double[3];
+                for (int i = 0; i < 3; i++) pos[i] = ((DoubleTag) posTag.get(i)).value();
+                String id = entity.getString("Id");
+                CompoundTag nbt = entity.getCompound("Data");
+                builder.addEntity(id, pos[0], pos[1], pos[2], nbt);
+            }
         }
         return builder.build();
     }
