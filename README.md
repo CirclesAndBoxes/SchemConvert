@@ -5,3 +5,4 @@ A lightweight tool to convert between different Minecraft schematic formats.
 - `.nbt` - Used by vanilla structure blocks
 - `.schem` - Used by many community programs, including WorldEdit and MCEdit
 - `.litematic` - Used by Litematica
+- `.bp` - Used by Axiom for blueprints
