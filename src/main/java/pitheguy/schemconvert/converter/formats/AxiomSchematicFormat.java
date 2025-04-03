@@ -1,13 +1,13 @@
 package pitheguy.schemconvert.converter.formats;
 
-import pitheguy.schemconvert.converter.*;
+import pitheguy.schemconvert.converter.Schematic;
+import pitheguy.schemconvert.converter.SchematicParseException;
 import pitheguy.schemconvert.nbt.NbtUtil;
 import pitheguy.schemconvert.nbt.tags.*;
 import pitheguy.schemconvert.util.Util;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -19,10 +19,7 @@ public class AxiomSchematicFormat implements SchematicFormat {
         DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
         if (in.readInt() != MAGIC) throw new SchematicParseException("Not an Axiom Blueprint");
         int headerTagSize = in.readInt();
-        byte[] headerTagData = in.readNBytes(headerTagSize);
-        DataInputStream headerTagStream = new DataInputStream(new ByteArrayInputStream(headerTagData));
-        CompoundTag headerTag = NbtUtil.read(headerTagStream);
-        headerTagStream.close();
+        in.readNBytes(headerTagSize);
         int thumbnailLength = in.readInt();
         in.readNBytes(thumbnailLength);
         int blockDataLength = in.readInt();

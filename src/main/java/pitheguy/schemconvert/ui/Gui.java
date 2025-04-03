@@ -13,12 +13,11 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 
 public class Gui extends JFrame {
-
-
     private JTextField inputPathField;
     private JTextField outputPathField;
     private FormatSelectionDropdown formatDropdown;
     private JButton convertButton;
+    private String lastPath = null;
 
     public Gui() {
         super("SchemConvert");
@@ -62,6 +61,7 @@ public class Gui extends JFrame {
                     String outputPath = Util.stripExtension(selectedFile.getAbsolutePath()) + formatDropdown.getSelectedFormat().getExtension();
                     outputPathField.setText(outputPath);
                 }
+                lastPath = selectedFile.getAbsolutePath();
             }
             updateButtonState();
         });
@@ -130,13 +130,13 @@ public class Gui extends JFrame {
 
 
     private JFileChooser createFileChooser() {
-        JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = new JFileChooser(lastPath);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
-                return Converter.SCHEMATIC_EXTENSIONS.stream().anyMatch(ext -> f.getName().toLowerCase().endsWith(ext));
+                return f.isDirectory() || Converter.SCHEMATIC_EXTENSIONS.stream().anyMatch(ext -> f.getName().toLowerCase().endsWith(ext));
             }
 
             @Override
