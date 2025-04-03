@@ -82,7 +82,11 @@ public class AxiomSchematicFormat implements SchematicFormat {
             ListTag blockEntities = blockDataTag.getList("BlockEntities");
             for (Tag tag : blockEntities) {
                 CompoundTag blockEntity = (CompoundTag) tag;
-                builder.addBlockEntity(blockEntity.getInt("X"), blockEntity.getInt("Y"), blockEntity.getInt("Z"), blockEntity);
+                if (blockEntity.contains("X", Tag.TAG_INT))
+                    builder.addBlockEntity(blockEntity.getInt("X"), blockEntity.getInt("Y"), blockEntity.getInt("Z"), blockEntity);
+                else
+                    builder.addBlockEntity(blockEntity.getInt("x"), blockEntity.getInt("y"), blockEntity.getInt("z"), blockEntity);
+
             }
         }
         return builder.trim().build();
