@@ -114,6 +114,7 @@ public class Gui extends JFrame {
             File outputFile = new File(outputPathField.getText());
             SchematicFormat format = formatDropdown.getSelectedFormat();
             new Converter().convert(inputFile, outputFile, format);
+            outputPathField.setText("");
             JOptionPane.showMessageDialog(this, "Schematic successfully converted!", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "An error occurred while reading the input file.", "Error", JOptionPane.ERROR_MESSAGE);
