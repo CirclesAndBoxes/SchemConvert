@@ -9,8 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.BitSet;
-import java.util.List;
+import java.util.*;
 
 public class LitematicSchematicFormat implements SchematicFormat {
     @Override
@@ -30,11 +29,12 @@ public class LitematicSchematicFormat implements SchematicFormat {
         for (int i = 0; i < paletteTag.size(); i++) palette[i] = NbtUtil.convertToBlockString((CompoundTag) paletteTag.get(i));
         Schematic.Builder builder = new Schematic.Builder(file, tag.getInt("MinecraftDataVersion"), size);
         int[] blockStates = unpackBlockStates(region.getLongArray("BlockStates"), size, palette);
+        boolean zeroIndexed = Arrays.stream(blockStates).anyMatch(state -> state == 0);
         int index = 0;
         for (int y = 0; y < size[1]; y++)
             for (int z = 0; z < size[2]; z++)
                 for (int x = 0; x < size[0]; x++)
-                    builder.setBlockAt(x, y, z, palette[blockStates[index++]]);
+                    builder.setBlockAt(x, y, z, palette[zeroIndexed ? blockStates[index++] : blockStates[index++] - 1]);
         ListTag tileEntitiesTag = region.getList("TileEntities");
         for (Tag value : tileEntitiesTag) {
             CompoundTag entityTag = (CompoundTag) value;
