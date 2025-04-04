@@ -10,14 +10,18 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class Gui extends JFrame {
     private JTextField inputPathField;
     private JTextField outputPathField;
+    private File[] selectedFiles;
     private FormatSelectionDropdown formatDropdown;
     private JButton convertButton;
     private String lastPath = null;
+    private JLabel outputLabel;
 
     public Gui() {
         super("SchemConvert");
@@ -54,14 +58,17 @@ public class Gui extends JFrame {
         JButton browseButton = new JButton("Browse...");
         browseButton.addActionListener(e -> {
             JFileChooser chooser = createFileChooser();
+            chooser.setMultiSelectionEnabled(true);
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = chooser.getSelectedFile();
-                inputPathField.setText(selectedFile.getAbsolutePath());
+                File[] selectedFiles = chooser.getSelectedFiles();
+                inputPathField.setText(selectedFiles.length == 1 ? selectedFiles[0].getAbsolutePath() : "Multiple files selected");
                 if (outputPathField.getText().isEmpty()) {
-                    String outputPath = Util.stripExtension(selectedFile.getAbsolutePath()) + formatDropdown.getSelectedFormat().getExtension();
+                    String outputPath = selectedFiles.length == 1 ? Util.stripExtension(selectedFiles[0].getAbsolutePath()) + formatDropdown.getSelectedFormat().getExtension() : selectedFiles[0].getParentFile().getAbsolutePath();
                     outputPathField.setText(outputPath);
                 }
-                lastPath = selectedFile.getAbsolutePath();
+                this.selectedFiles = selectedFiles;
+                lastPath = selectedFiles[0].getParentFile().getAbsolutePath();
+                outputLabel.setText(selectedFiles.length > 1 ? "Output Folder:" : "Output File:");
             }
             updateButtonState();
         });
@@ -72,21 +79,25 @@ public class Gui extends JFrame {
     private JPanel createOutputPathPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        JLabel label = new JLabel("Output File:");
-        label.setPreferredSize(new Dimension(70, 20));
-        panel.add(label);
+        outputLabel = new JLabel("Output File:");
+        outputLabel.setPreferredSize(new Dimension(70, 20));
+        panel.add(outputLabel);
         outputPathField = new JTextField(20);
         outputPathField.setEditable(false);
         panel.add(outputPathField);
         JButton browseButton = new JButton("Browse...");
         browseButton.addActionListener(e -> {
             JFileChooser chooser = createFileChooser();
+            if (selectedFiles != null && selectedFiles.length > 1)
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             if (!inputPathField.getText().isEmpty())
-                chooser.setCurrentDirectory(new File(inputPathField.getText()).getParentFile());
+                chooser.setCurrentDirectory(selectedFiles[0].getParentFile());
             if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 outputPathField.setText(chooser.getSelectedFile().getAbsolutePath());
-                String extension = Util.getExtension(outputPathField.getText());
-                if (Converter.SCHEMATIC_EXTENSIONS.contains(extension)) formatDropdown.setSelectedFormat(extension);
+                if (selectedFiles != null && selectedFiles.length > 1) {
+                    String extension = Util.getExtension(outputPathField.getText());
+                    if (Converter.SCHEMATIC_EXTENSIONS.contains(extension)) formatDropdown.setSelectedFormat(extension);
+                }
             }
             updateButtonState();
         });
@@ -109,17 +120,40 @@ public class Gui extends JFrame {
     }
 
     private void convert() {
+        if (selectedFiles.length > 1) {
+            convertMultiple();
+            return;
+        }
         try {
-            File inputFile = new File(inputPathField.getText());
-            File outputFile = new File(outputPathField.getText());
+            File output = new File(outputPathField.getText());
             SchematicFormat format = formatDropdown.getSelectedFormat();
-            new Converter().convert(inputFile, outputFile, format);
+            new Converter().convert(selectedFiles[0], output, format);
             outputPathField.setText("");
             JOptionPane.showMessageDialog(this, "Schematic successfully converted!", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "An error occurred while reading the input file.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An error occurred while reading the input file or writing the output file to disk.", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (NbtException | SchematicParseException e) {
             JOptionPane.showMessageDialog(this, "An error occurred while parsing the schematic. If you're sure this is a valid schematic, please report this!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } catch (ConversionException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred.", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
+    private void convertMultiple() {
+        try {
+            File output = new File(outputPathField.getText());
+            SchematicFormat format = formatDropdown.getSelectedFormat();
+            new Converter().convert(selectedFiles, output, format);
+            outputPathField.setText("");
+            JOptionPane.showMessageDialog(this, "Schematics successfully converted!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "An error occurred while reading one of the input files or writing its respective output files to disk.", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (NbtException | SchematicParseException e) {
+            JOptionPane.showMessageDialog(this, "An error occurred while parsing one of the schematics. If you're sure it is a valid schematic, please report this!", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         } catch (ConversionException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

@@ -17,7 +17,7 @@ public class AxiomSchematicFormat implements SchematicFormat {
     @Override
     public Schematic read(File file) throws IOException {
         DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
-        if (in.readInt() != MAGIC) throw new SchematicParseException("Not an Axiom Blueprint");
+        if (in.readInt() != MAGIC) throw new SchematicParseException("Incorrect header");
         int headerTagSize = in.readInt();
         in.readNBytes(headerTagSize);
         int thumbnailLength = in.readInt();
