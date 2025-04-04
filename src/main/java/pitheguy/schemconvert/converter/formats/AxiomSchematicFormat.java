@@ -45,7 +45,8 @@ public class AxiomSchematicFormat implements SchematicFormat {
             maxZ = Math.max(maxZ, region.getInt("Z"));
         }
         int[] size = {(maxX - minX + 1) * 16, (maxY - minY + 1) * 16, (maxZ - minZ + 1) * 16};
-        Schematic.Builder builder = new Schematic.Builder(file, -1, size);
+        int dataVersion = blockDataTag.contains("DataVersion", Tag.TAG_INT) ? blockDataTag.getInt("DataVersion") : -1;
+        Schematic.Builder builder = new Schematic.Builder(file, dataVersion, size);
         for (Tag tag : blockRegions) {
             CompoundTag region = (CompoundTag) tag;
             CompoundTag blockStatesTag = region.getCompound("BlockStates");
