@@ -80,8 +80,10 @@ public class SchemSchematicFormat implements SchematicFormat {
         int index = 0;
         for (int y = 0; y < ySize; y++)
             for (int z = 0; z < zSize; z++)
-                for (int x = 0; x < xSize; x++)
-                    builder.setBlockAt(x, y, z, palette[blockData[index++]]);
+                for (int x = 0; x < xSize; x++) {
+                    int paletteIndex = Byte.toUnsignedInt(blockData[index++]);
+                    builder.setBlockAt(x, y, z, palette[paletteIndex]);
+                }
         ListTag blockEntitiesTag = schematicTag.getList("BlockEntities");
         for (Tag value : blockEntitiesTag) {
             CompoundTag blockEntity = (CompoundTag) value;
