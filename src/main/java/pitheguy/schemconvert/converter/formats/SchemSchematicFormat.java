@@ -3,6 +3,7 @@ package pitheguy.schemconvert.converter.formats;
 import pitheguy.schemconvert.converter.*;
 import pitheguy.schemconvert.nbt.NbtUtil;
 import pitheguy.schemconvert.nbt.tags.*;
+import pitheguy.schemconvert.util.VarIntIterator;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,11 +37,13 @@ public class SchemSchematicFormat implements SchematicFormat {
         }
         Schematic.Builder builder = new Schematic.Builder(file, schematicTag.getInt("DataVersion"), xSize, ySize, zSize);
         byte[] blockData = blocksTag.getByteArray("Data");
-        int index = 0;
+        VarIntIterator blocks = new VarIntIterator(blockData);
         for (int y = 0; y < ySize; y++)
             for (int z = 0; z < zSize; z++)
-                for (int x = 0; x < xSize; x++)
-                    builder.setBlockAt(x, y, z, palette[blockData[index++]]);
+                for (int x = 0; x < xSize; x++) {
+                    int paletteIndex = blocks.next();
+                    builder.setBlockAt(x, y, z, palette[paletteIndex]);
+                }
         if (schematicTag.contains("BlockEntities", Tag.TAG_LIST)) {
             ListTag blockEntitiesTag = blocksTag.getList("BlockEntities");
             for (Tag value : blockEntitiesTag) {
@@ -77,13 +80,11 @@ public class SchemSchematicFormat implements SchematicFormat {
         int zSize = schematicTag.getShort("Length");
         Schematic.Builder builder = new Schematic.Builder(file, schematicTag.getInt("DataVersion"), xSize, ySize, zSize);
         byte[] blockData = schematicTag.getByteArray("BlockData");
-        int index = 0;
+        VarIntIterator blocks = new VarIntIterator(blockData);
         for (int y = 0; y < ySize; y++)
             for (int z = 0; z < zSize; z++)
-                for (int x = 0; x < xSize; x++) {
-                    int paletteIndex = Byte.toUnsignedInt(blockData[index++]);
-                    builder.setBlockAt(x, y, z, palette[paletteIndex]);
-                }
+                for (int x = 0; x < xSize; x++)
+                    builder.setBlockAt(x, y, z, palette[blocks.next()]);
         ListTag blockEntitiesTag = schematicTag.getList("BlockEntities");
         for (Tag value : blockEntitiesTag) {
             CompoundTag blockEntity = (CompoundTag) value;
