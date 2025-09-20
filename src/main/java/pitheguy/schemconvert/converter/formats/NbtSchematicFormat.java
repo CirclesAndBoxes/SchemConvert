@@ -184,7 +184,7 @@ public class NbtSchematicFormat implements SchematicFormat {
         ArrayList<File> list_of_files = new ArrayList<>();
 
         for (String block_string : schematic.getPalette()) {
-            String folderPath = block_string; // Relative path
+            String folderPath = block_string.replace("minecraft:","m_"); // Relative path
             // String folderPath = "C:\\Users\\YourUser\\Documents\\newFolder"; // Absolute path example
             // Creates the folder
             list_of_files.add(new File(folderPath));
@@ -211,7 +211,9 @@ public class NbtSchematicFormat implements SchematicFormat {
         ListTag paletteTag = new ListTag(Tag.TAG_COMPOUND);
         for (String block : schematic.getPalette()) paletteTag.add(NbtUtil.convertFromBlockString(block));
         // ListTag blocksTag = new ListTag(Tag.TAG_COMPOUND);
-            
+        
+        System.out.println("Made it to the for loop statement");
+
         for (int x = 0; x < size[0]; x++) {
             for (int y = 0; y < size[1]; y++) {
                 for (int z = 0; z < size[2]; z++) {
@@ -256,14 +258,26 @@ public class NbtSchematicFormat implements SchematicFormat {
             entitiesTag.add(entityTag);
         }
 
+        System.out.println("Made it to the last for loop statement");
+        System.out.println("Last list_of_tag size: " + list_of_tag.size());
 
         for (int i = 0; i < list_of_tag.size(); i ++) {
+            System.out.println("list_of_tag size = " + list_of_tag.size());
+            System.out.println("list_of_blockTag size = " + list_of_blockTag.size());
+            System.out.println("i value: " + i);
+
             list_of_tag.get(i).put("entities", entitiesTag);
             list_of_tag.get(i).put("size", sizeTag);
             list_of_tag.get(i).put("blocks", list_of_blockTag.get(i));
             list_of_tag.get(i).put("palette", paletteTag);
             list_of_tag.get(i).put("DataVersion", new IntTag(schematic.getDataVersion()));
-            NbtUtil.write(list_of_tag.get(i), list_of_files.get(i));
+
+            System.out.println("Expected Failure Point");
+            try {
+                NbtUtil.write(list_of_tag.get(i), list_of_files.get(i));
+            } catch (IOException e) {
+                System.out.println("Issue: " + e);
+            }
         }
         
 

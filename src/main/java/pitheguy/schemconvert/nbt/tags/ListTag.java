@@ -1,10 +1,12 @@
 package pitheguy.schemconvert.nbt.tags;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+
 import pitheguy.schemconvert.nbt.NbtException;
 import pitheguy.schemconvert.nbt.NbtUtil;
-
-import java.io.*;
-import java.util.ArrayList;
 
 public class ListTag extends ArrayList<Tag> implements Tag {
     byte type;
@@ -13,6 +15,7 @@ public class ListTag extends ArrayList<Tag> implements Tag {
         this.type = type;
     }
 
+    @Override
     public boolean add(Tag tag) {
         if (tag.getType() != type)
             throw new NbtException("Type mismatch: Attempted to insert tag of type " + tag.getType() + " into list of type " + type);
