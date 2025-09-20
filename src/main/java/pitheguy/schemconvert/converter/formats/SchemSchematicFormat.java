@@ -1,14 +1,24 @@
 package pitheguy.schemconvert.converter.formats;
 
-import pitheguy.schemconvert.converter.*;
-import pitheguy.schemconvert.nbt.NbtUtil;
-import pitheguy.schemconvert.nbt.tags.*;
-import pitheguy.schemconvert.util.VarIntIterator;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import pitheguy.schemconvert.converter.ConversionException;
+import pitheguy.schemconvert.converter.Entity;
+import pitheguy.schemconvert.converter.Schematic;
+import pitheguy.schemconvert.nbt.NbtUtil;
+import pitheguy.schemconvert.nbt.tags.ByteArrayTag;
+import pitheguy.schemconvert.nbt.tags.CompoundTag;
+import pitheguy.schemconvert.nbt.tags.DoubleTag;
+import pitheguy.schemconvert.nbt.tags.IntArrayTag;
+import pitheguy.schemconvert.nbt.tags.IntTag;
+import pitheguy.schemconvert.nbt.tags.ListTag;
+import pitheguy.schemconvert.nbt.tags.ShortTag;
+import pitheguy.schemconvert.nbt.tags.StringTag;
+import pitheguy.schemconvert.nbt.tags.Tag;
+import pitheguy.schemconvert.util.VarIntIterator;
 
 public class SchemSchematicFormat implements SchematicFormat {
     @Override
@@ -29,6 +39,12 @@ public class SchemSchematicFormat implements SchematicFormat {
         int zSize = schematicTag.getShort("Length");
         CompoundTag blocksTag = schematicTag.getCompound("Blocks");
         CompoundTag paletteTag = blocksTag.getCompound("Palette");
+
+        // Checking this
+        System.out.println(blocksTag);
+        System.out.println();
+        System.out.println(paletteTag);
+
         int paletteMax = paletteTag.keySet().size() - 1;
         String[] palette = new String[paletteMax + 1];
         for (String key : paletteTag.keySet()) {

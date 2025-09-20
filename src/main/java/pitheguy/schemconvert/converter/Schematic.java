@@ -1,12 +1,18 @@
 package pitheguy.schemconvert.converter;
 
-import pitheguy.schemconvert.converter.formats.*;
-import pitheguy.schemconvert.nbt.tags.CompoundTag;
-import pitheguy.schemconvert.util.Util;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.SequencedSet;
+
+import pitheguy.schemconvert.converter.formats.SchematicFormat;
+import pitheguy.schemconvert.converter.formats.SchematicFormats;
+import pitheguy.schemconvert.nbt.tags.CompoundTag;
+import pitheguy.schemconvert.util.Util;
 
 public class Schematic {
     private final String[][][] blocks;
@@ -148,5 +154,40 @@ public class Schematic {
         public Schematic build() {
             return new Schematic(blocks, palette.stream().toList(), blockEntities, entities, dataVersion, sourceFile);
         }
+
+        
+    }
+
+    public Schematic partialSchematic(int[] coords, int[] size) {
+        String[][][] newBlocks = new String[size[0]][size[1]][size[2]];
+        
+        for (int i = 0; i < size[0]; i++) { 
+            for (int j = 0; j < size[1]; j++) { 
+                for (int k = 0; k < size[2]; k++) { 
+                    newBlocks[i][j][k] = blocks[coords[0] + i][coords[1] + j][coords[2] + k];
+                }
+            }
+        }
+
+        return new Schematic(newBlocks, palette.stream().toList(), blockEntities, entities, dataVersion, sourceFile);
+    }
+
+    public Schematic keepBlock(String block) {
+        String[][][] newBlocks = new String[blocks.length][blocks[0].length][blocks[0][0].length];
+        
+        for (int i = 0; i < blocks.length; i++) { 
+            for (int j = 0; j < blocks[0].length; j++) { 
+                for (int k = 0; k < blocks[0][0].length; k++) { 
+                    if(blocks[i][j][k] == null ? block == null : blocks[i][j][k].equals(block)) {
+                        newBlocks[i][j][k] = block;
+                    } else {
+                        newBlocks[i][j][k] = "";
+                    }
+                    
+                }
+            }
+        }
+
+        return new Schematic(newBlocks, palette.stream().toList(), blockEntities, entities, dataVersion, sourceFile);
     }
 }
