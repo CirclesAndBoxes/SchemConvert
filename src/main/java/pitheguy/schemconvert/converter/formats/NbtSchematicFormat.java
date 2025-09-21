@@ -66,35 +66,32 @@ public class NbtSchematicFormat implements SchematicFormat {
     //@Override
     public void writeX(File file, Schematic schematic) throws IOException {
         //schematic.getPalette()
-
-        int[] full_sections = {0, 0, 0};
+        int[] total_sections = {0, 0, 0};
         int[] partial_sections = {0, 0, 0};
-
         int[] size = schematic.getSize();
 
         for (int i = 0; i < 3; i++) {
-            full_sections[i] = size[i] / 48;
-
+            total_sections[i] = size[i] / 48;
             partial_sections[i] = size[i] % 48;
             if (partial_sections[i] == 0){
                 partial_sections[i] = 48;
-                full_sections[i] -= 1;
+                total_sections[i] -= 1;
             }
         }
 
-        for (int i = 0; i <= full_sections[0]; i++) {
-            for (int j = 0; j <= full_sections[1]; j++) {
-                for (int k = 0; k <= full_sections[2]; k++) {
+        for (int i = 0; i <= total_sections[0]; i++) {
+            for (int j = 0; j <= total_sections[1]; j++) {
+                for (int k = 0; k <= total_sections[2]; k++) {
                     int[] newCoords = {48 * i, 48 * j, 48 * k};
                     int[] newSize = {48, 48, 48};
 
-                    if (i == full_sections[0]){
+                    if (i == total_sections[0]){
                         newSize[0] = partial_sections[0];
                     }
-                    if (j == full_sections[1]){
+                    if (j == total_sections[1]){
                         newSize[1] = partial_sections[1];
                     }
-                    if (k == full_sections[2]){
+                    if (k == total_sections[2]){
                         newSize[2] = partial_sections[2];
                     }
 
@@ -103,7 +100,6 @@ public class NbtSchematicFormat implements SchematicFormat {
                     File tempFile = new File(file.getName().replace(".nbt","_" + i + "_" + j + "_" + k) + ".nbt");
 
                     //write_by_block(tempFile, part);
-
                 }
             }
         }
@@ -177,19 +173,40 @@ public class NbtSchematicFormat implements SchematicFormat {
         // if (size[0] > 48 || size[1] > 48 || size[2] > 48)
         //     throw new ConversionException("The schematic is too large to use this format!");
         
+        // ArrayList<CompoundTag> list_of_tag = new ArrayList<>();
+        //ArrayList<ListTag> list_of_blockTag = new ArrayList<>();
 
-        ArrayList<CompoundTag> list_of_tag = new ArrayList<>();
-        ArrayList<ListTag> list_of_blockTag = new ArrayList<>();
+        // Simple list of which folders exist
+        ArrayList<File> list_of_folders = new ArrayList<>();
 
-        ArrayList<File> list_of_files = new ArrayList<>();
+        // Folder, x, y, z, file
+        ArrayList<ArrayList<ArrayList<ArrayList<File>>>> list_of_files = new ArrayList<>();
+        ArrayList<ArrayList<ArrayList<ArrayList<ListTag>>>> large_list_blockTag = new ArrayList<>();
+        ArrayList<ArrayList<ArrayList<ArrayList<CompoundTag>>>> large_list_tag = new ArrayList<>();
 
+
+        // Size variables being set here
+        int[] total_sections = {0, 0, 0};
+        int[] partial_sections = {0, 0, 0};
+
+        for (int i = 0; i < 3; i++) {
+            total_sections[i] = size[i] / 48;
+
+            partial_sections[i] = size[i] % 48;
+            if (partial_sections[i] == 0){
+                partial_sections[i] = 48;
+                total_sections[i] -= 1;
+            }
+        }
+        
+        // Creating files for each block
         for (String block_string : schematic.getPalette()) {
             String folderPath = block_string.replace("minecraft:","m_"); // Relative path
             // String folderPath = "C:\\Users\\YourUser\\Documents\\newFolder"; // Absolute path example
             // Creates the folder
-            list_of_files.add(new File(folderPath));
-            if (!list_of_files.getLast().exists()) { // Check if the folder already exists
-                boolean created = list_of_files.getLast().mkdir(); // Use mkdir() for a single directory
+            list_of_folders.add(new File(folderPath));
+            if (!list_of_folders.getLast().exists()) { // Check if the folder already exists
+                boolean created = list_of_folders.getLast().mkdir(); // Use mkdir() for a single directory
                 // boolean created = newFolder.mkdirs(); // Use mkdirs() for creating parent directories too
                 if (created) {
                     System.out.println("Folder '" + folderPath + "' created successfully.");
@@ -200,8 +217,33 @@ public class NbtSchematicFormat implements SchematicFormat {
                 System.out.println("Folder '" + folderPath + "' already exists.");
             }
             
-            list_of_tag.add(new CompoundTag());
-            list_of_blockTag.add(new ListTag(Tag.TAG_COMPOUND));
+            //list_of_tag.add(new CompoundTag());
+
+            // list of files creates for the new folder
+            list_of_files.add(new ArrayList<>());
+            large_list_blockTag.add(new ArrayList<>());
+            large_list_tag.add(new ArrayList<>());
+
+            for (int i = 0; i <= total_sections[0]; i++) {
+                list_of_files.getLast().add(new ArrayList<>());
+                large_list_blockTag.getLast().add(new ArrayList<>());
+                large_list_tag.getLast().add(new ArrayList<>());
+
+
+                for (int j = 0; j <= total_sections[1]; j++) {
+                    list_of_files.getLast().get(i).add(new ArrayList<>());
+                    large_list_blockTag.getLast().get(i).add(new ArrayList<>());                    
+                    large_list_tag.getLast().get(i).add(new ArrayList<>());                    
+
+                    for (int k = 0; k <= total_sections[2]; k++) {
+                        File tempFile = new File( list_of_folders.getLast().getName() + "/" + i + "_" + j + "_" + k + ".nbt");
+                        list_of_files.getLast().get(i).get(j).add(tempFile);
+                        large_list_blockTag.getLast().get(i).get(j).add(new ListTag(Tag.TAG_COMPOUND));
+                        large_list_tag.getLast().get(i).get(j).add(new CompoundTag());
+
+                    }
+                }
+            }
         }
 
         // // Compound Tag is the tag of all of the other tags
@@ -212,20 +254,16 @@ public class NbtSchematicFormat implements SchematicFormat {
         for (String block : schematic.getPalette()) paletteTag.add(NbtUtil.convertFromBlockString(block));
         // ListTag blocksTag = new ListTag(Tag.TAG_COMPOUND);
         
-        System.out.println("Made it to the for loop statement");
-
         for (int x = 0; x < size[0]; x++) {
             for (int y = 0; y < size[1]; y++) {
                 for (int z = 0; z < size[2]; z++) {
 
                     int state = schematic.getPaletteBlock(x, y, z);
-                    // if its null
+                    // if its null, skip it
                     if (state == -1) continue;
-                    
-                    // for each state in 
 
                     ListTag posTag = new ListTag(Tag.TAG_INT);
-                    for (int i : new int[]{x, y, z}) posTag.add(new IntTag(i));
+                    for (int i : new int[]{x % 48, y % 48, z % 48}) posTag.add(new IntTag(i));
 
                     CompoundTag entry = new CompoundTag();
                     entry.put("pos", posTag);
@@ -234,7 +272,7 @@ public class NbtSchematicFormat implements SchematicFormat {
                     // I'm ignoring actual and block entities now as much as I can right now
                     //if (schematic.hasBlockEntityAt(x, y, z)) entry.put("nbt", schematic.getBlockEntityAt(x, y, z));
 
-                    list_of_blockTag.get(state).add(entry);
+                    large_list_blockTag.get(state).get(x / 48).get(y / 48).get(z / 48).add(entry);
 
                 }
             }
@@ -258,26 +296,28 @@ public class NbtSchematicFormat implements SchematicFormat {
             entitiesTag.add(entityTag);
         }
 
-        System.out.println("Made it to the last for loop statement");
-        System.out.println("Last list_of_tag size: " + list_of_tag.size());
 
-        for (int i = 0; i < list_of_tag.size(); i ++) {
-            System.out.println("list_of_tag size = " + list_of_tag.size());
-            System.out.println("list_of_blockTag size = " + list_of_blockTag.size());
-            System.out.println("i value: " + i);
+        for (int paletteIndex = 0; paletteIndex < large_list_tag.size(); paletteIndex ++) {
+            for (int i = 0; i < large_list_tag.get(paletteIndex).size(); i++) {
+                for (int j = 0; j < large_list_tag.get(paletteIndex).get(i).size(); j++) {
+                    for (int k = 0; k < large_list_tag.get(paletteIndex).get(i).get(j).size(); k++) {
 
-            list_of_tag.get(i).put("entities", entitiesTag);
-            list_of_tag.get(i).put("size", sizeTag);
-            list_of_tag.get(i).put("blocks", list_of_blockTag.get(i));
-            list_of_tag.get(i).put("palette", paletteTag);
-            list_of_tag.get(i).put("DataVersion", new IntTag(schematic.getDataVersion()));
+                        large_list_tag.get(paletteIndex).get(i).get(j).get(k).put("entities", entitiesTag);
+                        large_list_tag.get(paletteIndex).get(i).get(j).get(k).put("size", sizeTag);
+                        large_list_tag.get(paletteIndex).get(i).get(j).get(k).put("blocks", large_list_blockTag.get(paletteIndex).get(i).get(j).get(k));
+                        large_list_tag.get(paletteIndex).get(i).get(j).get(k).put("palette", paletteTag);
+                        large_list_tag.get(paletteIndex).get(i).get(j).get(k).put("DataVersion", new IntTag(schematic.getDataVersion()));
 
-            System.out.println("Expected Failure Point");
-            try {
-                NbtUtil.write(list_of_tag.get(i), list_of_files.get(i));
-            } catch (IOException e) {
-                System.out.println("Issue: " + e);
+                        try {
+                            NbtUtil.write(large_list_tag.get(paletteIndex).get(i).get(j).get(k), list_of_files.get(paletteIndex).get(i).get(j).get(k));
+                        } catch (IOException e) {
+                            System.out.println("Issue: " + e);
+                        }
+                    }
+                }
             }
+
+            
         }
         
 
