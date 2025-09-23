@@ -1,6 +1,8 @@
 package pitheguy.schemconvert.nbt.tags;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public record IntTag(int value) implements Tag {
     @Override

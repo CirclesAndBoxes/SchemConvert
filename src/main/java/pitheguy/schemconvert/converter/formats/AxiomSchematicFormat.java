@@ -1,15 +1,35 @@
 package pitheguy.schemconvert.converter.formats;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
 import pitheguy.schemconvert.converter.Schematic;
 import pitheguy.schemconvert.converter.SchematicParseException;
 import pitheguy.schemconvert.nbt.NbtUtil;
-import pitheguy.schemconvert.nbt.tags.*;
+import pitheguy.schemconvert.nbt.tags.ByteTag;
+import pitheguy.schemconvert.nbt.tags.CompoundTag;
+import pitheguy.schemconvert.nbt.tags.FloatTag;
+import pitheguy.schemconvert.nbt.tags.IntTag;
+import pitheguy.schemconvert.nbt.tags.ListTag;
+import pitheguy.schemconvert.nbt.tags.LongArrayTag;
+import pitheguy.schemconvert.nbt.tags.LongTag;
+import pitheguy.schemconvert.nbt.tags.StringTag;
+import pitheguy.schemconvert.nbt.tags.Tag;
 import pitheguy.schemconvert.util.Util;
-
-import java.io.*;
-import java.util.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 public class AxiomSchematicFormat implements SchematicFormat {
     private static final int MAGIC = 0x0AE5BB36;
@@ -17,6 +37,8 @@ public class AxiomSchematicFormat implements SchematicFormat {
     @Override
     public Schematic read(File file) throws IOException {
         DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+        //Comment: Testing this
+        System.out.println("This file was read");
         if (in.readInt() != MAGIC) throw new SchematicParseException("Incorrect header");
         int headerTagSize = in.readInt();
         in.readNBytes(headerTagSize);

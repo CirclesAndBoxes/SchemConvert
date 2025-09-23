@@ -1,18 +1,26 @@
 package pitheguy.schemconvert.ui;
 
-import pitheguy.schemconvert.converter.*;
+import java.awt.Dimension;
+import java.io.File;
+import java.io.IOException;
+import java.util.stream.Collectors;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.filechooser.FileFilter;
+
+import pitheguy.schemconvert.converter.ConversionException;
+import pitheguy.schemconvert.converter.Converter;
+import pitheguy.schemconvert.converter.SchematicParseException;
 import pitheguy.schemconvert.converter.formats.SchematicFormat;
 import pitheguy.schemconvert.nbt.NbtException;
 import pitheguy.schemconvert.util.Util;
-
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class Gui extends JFrame {
     private JTextField inputPathField;
