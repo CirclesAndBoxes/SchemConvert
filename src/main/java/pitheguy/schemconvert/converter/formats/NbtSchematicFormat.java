@@ -126,10 +126,8 @@ public class NbtSchematicFormat implements SchematicFormat {
             }
         }
 
-        // This bottom part replaces:   write_cut_sections_old(file, schematic);
+        write_cut_sections_old(file, schematic);
 
-        File new_file_name = new File("breast_cancer.nbt");
-        write_cut_sections_old(new_file_name, schematic);
     }
 
     // Copy of old command
