@@ -68,7 +68,7 @@ public class NbtSchematicFormat implements SchematicFormat {
     // Real name: write_for_each_block
     @Override
     public void write(File file, Schematic schematic) throws IOException {
-
+        System.out.println("Started writing");
         List<String> palette = schematic.getPalette();
         int[] total_sections = {0, 0, 0};
         int[] partial_sections = {0, 0, 0};
@@ -83,13 +83,10 @@ public class NbtSchematicFormat implements SchematicFormat {
         }
 
         for (String block_name: palette) {
-            if (block_name.equals("minecraft:air")) {
-                continue;
-            }
 
-            String folderPath = block_name.replace("minecraft:","m_"); // Relative path
+            String folderPath = block_name.replace("minecraft:",""); // Relative path
             File current_folder = new File(folderPath);
-            if (current_folder.exists()) { // Check if the folder already exists
+            // if (current_folder.exists()) { // Check if the folder already exists
                 boolean created = current_folder.mkdir(); // Use mkdir() for a single directory
                 // boolean created = newFolder.mkdirs(); // Use mkdirs() for creating parent directories too
                 if (created) {
@@ -97,10 +94,15 @@ public class NbtSchematicFormat implements SchematicFormat {
                 } else {
                     System.out.println("Failed to create folder '" + folderPath + "'.");
                 }
-            } else {
-                System.out.println("Folder '" + folderPath + "' already exists.");
-            }
+            // } else {
+            //     System.out.println("Folder '" + folderPath + "' already exists.");
+            // }
             
+            System.out.println(current_folder.getAbsolutePath());
+
+            if (block_name.equals("minecraft:air")) {
+                continue;
+            }
             for (int i = 0; i <= total_sections[0]; i++) {
                 for (int j = 0; j <= total_sections[1]; j++) {
                     for (int k = 0; k <= total_sections[2]; k++) {
@@ -117,13 +119,17 @@ public class NbtSchematicFormat implements SchematicFormat {
                         }
                         Schematic part = schematic.partialSchematic(newCoords, newSize);
                         File tempFile = new File(folderPath + "/" + i + "_" + j + "_" + k + ".nbt");
+
                         write_section_by_block(tempFile, part, block_name);
                     }
                 }
             }
         }
-        write_cut_sections_old(file, schematic);
-        System.out.println(file.getName());
+
+        // This bottom part replaces:   write_cut_sections_old(file, schematic);
+
+        File new_file_name = new File("breast_cancer.nbt");
+        write_cut_sections_old(new_file_name, schematic);
     }
 
     // Copy of old command
@@ -401,6 +407,7 @@ public class NbtSchematicFormat implements SchematicFormat {
     public void write_section_by_block(File file, Schematic schematic, String block_name) throws IOException {
 
         int[] size = schematic.getSize();
+
         if (size[0] > 48 || size[1] > 48 || size[2] > 48)
             throw new ConversionException("The schematic is too large to use this format!");
         
@@ -414,22 +421,23 @@ public class NbtSchematicFormat implements SchematicFormat {
         for (int x = 0; x < size[0]; x++) {
             for (int y = 0; y < size[1]; y++) {
                 for (int z = 0; z < size[2]; z++) {
-
                     int state = schematic.getPaletteBlock(x, y, z);
                     // if its null
                     if (state == -1) continue;
-                    if (!schematic.getPalette().get(state).equals(block_name)) continue;
+                    if (!(schematic.getPalette().get(state).equals(block_name))) continue;
 
                     ListTag posTag = new ListTag(Tag.TAG_INT);
                     for (int i : new int[]{x, y, z}) posTag.add(new IntTag(i));
                     CompoundTag entry = new CompoundTag();
                     entry.put("pos", posTag);
                     entry.put("state", new IntTag(state));
-                    //if (schematic.hasBlockEntityAt(x, y, z)) entry.put("nbt", schematic.getBlockEntityAt(x, y, z));
+                    if (schematic.hasBlockEntityAt(x, y, z)) entry.put("nbt", schematic.getBlockEntityAt(x, y, z));
                     blocksTag.add(entry);
+
                 }
             }
         }
+
         ListTag entitiesTag = new ListTag(Tag.TAG_COMPOUND);
         for (Entity entity : schematic.getEntities()) {
             CompoundTag entityTag = new CompoundTag();
@@ -453,7 +461,14 @@ public class NbtSchematicFormat implements SchematicFormat {
         tag.put("blocks", blocksTag);
         tag.put("palette", paletteTag);
         tag.put("DataVersion", new IntTag(schematic.getDataVersion()));
-        NbtUtil.write(tag, file);
+
+        try {
+            if (!blocksTag.isEmpty()){
+                NbtUtil.write(tag, file);
+            }
+        } catch (IOException e) {
+            System.out.println(e);
+        }
     }
 
     @Override
