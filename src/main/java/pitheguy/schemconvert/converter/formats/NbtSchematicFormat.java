@@ -73,6 +73,7 @@ public class NbtSchematicFormat implements SchematicFormat {
         int[] total_sections = {0, 0, 0};
         int[] partial_sections = {0, 0, 0};
         int[] size = schematic.getSize();
+
         for (int i = 0; i < 3; i++) {
             total_sections[i] = size[i] / 48;
             partial_sections[i] = size[i] % 48;
@@ -83,7 +84,9 @@ public class NbtSchematicFormat implements SchematicFormat {
         }
 
         for (String block_name: palette) {
-
+            if (block_name.equals("minecraft:air")) {
+                continue;
+            }
             String folderPath = block_name.replace("minecraft:",""); // Relative path
             File current_folder = new File(folderPath);
             // if (current_folder.exists()) { // Check if the folder already exists

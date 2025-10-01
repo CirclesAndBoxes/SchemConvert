@@ -164,7 +164,11 @@ public class Schematic {
         for (int i = 0; i < size[0]; i++) { 
             for (int j = 0; j < size[1]; j++) { 
                 for (int k = 0; k < size[2]; k++) { 
-                    newBlocks[i][j][k] = blocks[coords[0] + i][coords[1] + j][coords[2] + k];
+                    try {
+                        newBlocks[i][j][k] = blocks[coords[0] + i][coords[1] + j][coords[2] + k];
+                    } catch (Exception e) {
+                        newBlocks[i][j][k] = null;
+                    }
                 }
             }
         }
